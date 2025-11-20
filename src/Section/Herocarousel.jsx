@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade, Keyboard, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-fade";
-import heroImage1 from "../assets/Hero_Images/KIBU-banner.png";
+import heroImage1 from "../assets/Hero_Images/KIBU-Banner.png";
 import heroImage2 from "../assets/Hero_Images/fizzy-banner.png";
 import heroImage3 from "../assets/Hero_Images/REBOOST-Banner.png";
 
