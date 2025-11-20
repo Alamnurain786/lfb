@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import kibu330 from "../assets/Product_Images/KIBU_330.png";
 import arna330 from "../assets/Product_Images/ARNA_CAN330.png";
-import reboost from "../assets/Product_Images/REBOOST.png";
+import reboost from "../assets/Product_Images/Reboost.png";
 
 const products = [
   {
