@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import coco_can from "../assets/Product_Images/COCO_can.png";
+import coco_can from "../assets/Product_Images/COCO_Can.png";
 import coco_bottle from "../assets/Product_Images/Coco_bottle.png";
 import lichi from "../assets/Product_Images/Life_litchi.png";
-import mango from "../assets/Product_Images/mango-bottle.png";
-import nimboo from "../assets/Product_Images/Nimboo_pani_250.png";
+import mango from "../assets/Product_Images/Mango-Bottle.png";
+import nimboo from "../assets/Product_Images/Nimboo_Pani_250.png";
 
 const juiceProducts = [
   {
