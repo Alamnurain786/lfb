@@ -64,7 +64,7 @@ const Contact = () => {
               <p className="text-white/90">
                 Life Food & Beverage
                 <br />
-                Lainchau Naxal, Kathmandu, Nepal
+                Narayanchaur, Naxal, Kathmandu, Nepal
               </p>
             </div>
             <div className="space-y-4">
