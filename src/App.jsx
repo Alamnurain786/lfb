@@ -1,22 +1,12 @@
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Herocarousel from "./Section/Herocarousel";
-import Productcarousel from "./Section/Productcarousel";
-import JuiceCarousel from "./Section/JuiceCarousel";
-
-import About from "./Section/About";
-import Contact from "./Section/Contact";
+import { Route, Routes } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import ProductDetails from "./pages/ProductDetails";
 
 export default function App() {
   return (
-    <>
-      <Header />
-      <Herocarousel />
-      <Productcarousel />
-      <JuiceCarousel />
-      <About />
-      <Contact />
-      <Footer />
-    </>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/product/:productId" element={<ProductDetails />} />
+    </Routes>
   );
 }

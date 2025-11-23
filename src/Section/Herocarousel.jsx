@@ -34,7 +34,13 @@ const Hero = () => {
   const [activeSlide, setActiveSlide] = useState(0);
 
   return (
-    <section id="hero" className="relative isolate min-h-[80vh] w-full">
+    <section
+      id="hero"
+      className="relative isolate min-h-screen w-full -mt-[72px]"
+    >
+      {/* Header background area */}
+      <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 z-0" />
+
       <Swiper
         modules={[Autoplay, EffectFade, Pagination, Keyboard]}
         effect="fade"
@@ -49,7 +55,7 @@ const Hero = () => {
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={slide.image}>
-            <div className="relative flex min-h-[80vh] w-full items-stretch">
+            <div className="relative flex min-h-screen w-full items-stretch pt-[72px]">
               <img
                 src={slide.image}
                 alt={slide.title}

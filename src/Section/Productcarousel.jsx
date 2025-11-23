@@ -1,53 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import kibu330 from "../assets/Product_Images/KIBU_330.png";
-import arna330 from "../assets/Product_Images/ARNA_CAN330.png";
-import reboost from "../assets/Product_Images/Reboost.png";
-
-const products = [
-  {
-    id: "kibu330",
-    title: "KIBU Energy",
-    variant: "Original ",
-    description:
-      "Balanced taurine+caffeine blend tailored for all-day focus and smooth lift.",
-    image: kibu330,
-    badge: "Best Seller",
-    theme: {
-      surface: "linear-gradient(135deg,#0f1c3f 0%,#1f375b 55%,#335c9b 100%)",
-      accentBar: "linear-gradient(180deg,#6ea2ff 0%,rgba(255,255,255,0) 80%)",
-      isDark: true,
-    },
-  },
-
-  {
-    id: "arna330",
-    title: "ARNA Spark",
-    variant: "Berry Rush ",
-    description: "Berry-forward fizz wrapped in cooling menthol finish.",
-    image: arna330,
-    theme: {
-      surface: "linear-gradient(135deg,#fbfdff 0%,#c6f3ff 45%,#2dcbf5 100%)",
-      accentBar: "linear-gradient(180deg,#ffffff 0%,#2dcbf5 100%)",
-      isDark: false,
-    },
-  },
-  {
-    id: "reboost",
-    title: "REBOOST",
-    variant: "Zero Sugar ",
-    description:
-      "Hydration-first stamina drink with BCAA stack and crisp finish.",
-    image: reboost,
-    badge: "New",
-    theme: {
-      surface: "linear-gradient(135deg,#fff4e1 0%,#ffc46b 65%,#ffb347 100%)",
-      accentBar: "linear-gradient(180deg,#ffe7bf 0%,#ff9c3f 100%)",
-      isDark: false,
-    },
-  },
-];
+import { energyProducts } from "../data/products";
 
 const Product = () => {
   const containerRef = useRef(null);
@@ -66,11 +21,11 @@ const Product = () => {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
     if (!isDesktop) return;
 
-    const totalSlides = products.length;
+    const totalSlides = energyProducts.length;
     const ctx = gsap.context(() => {
       gsap.to(trackRef.current, {
         xPercent: -100 * (totalSlides - 1),
@@ -78,13 +33,13 @@ const Product = () => {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${window.innerHeight * (totalSlides - 1)}`,
-          scrub: 0.85,
+          end: `+=${window.innerHeight * (totalSlides - 1) * 1.5}`,
+          scrub: 1.2,
           pin: true,
           anticipatePin: 1,
           snap: {
             snapTo: 1 / (totalSlides - 1),
-            duration: 0.6,
+            duration: 0.8,
             ease: "power1.inOut",
           },
           onUpdate: (self) =>
@@ -97,12 +52,7 @@ const Product = () => {
   }, [isDesktop]);
 
   return (
-    <section
-      id="products"
-      ref={containerRef}
-      className="relative"
-      // style={{ height: isDesktop ? `${products.length * 100}vh` : "auto" }}
-    >
+    <section id="products" ref={containerRef} className="relative">
       <div
         className={`w-full ${
           isDesktop ? "sticky top-0 h-screen overflow-hidden" : ""
@@ -112,7 +62,7 @@ const Product = () => {
           ref={trackRef}
           className="flex h-full w-full flex-col md:flex-row will-change-transform"
         >
-          {products.map((product, index) => {
+          {energyProducts.map((product, index) => {
             const isDark = product.theme?.isDark;
             const titleTone = isDark ? "text-white" : "text-slate-900";
             const kickerTone = isDark ? "text-white/70" : "text-slate-900/60";
@@ -166,12 +116,13 @@ const Product = () => {
                   <p className={`text-lg md:max-w-md ${bodyTone}`}>
                     {product.description}
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    to={`/product/${product.id}`}
+                    state={{ product }}
                     className={`inline-flex items-center justify-center rounded-full px-10 py-3 text-sm font-semibold shadow-[0_16px_35px_rgba(0,0,0,0.25)] transition ${ctaTone}`}
                   >
                     See product
-                  </button>
+                  </Link>
                 </div>
               </article>
             );

@@ -1,79 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import coco_can from "../assets/Product_Images/COCO_Can.png";
-import coco_bottle from "../assets/Product_Images/Coco_bottle.png";
-import lichi from "../assets/Product_Images/Life_litchi.png";
-import mango from "../assets/Product_Images/Mango-Bottle.png";
-import nimboo from "../assets/Product_Images/Nimboo_Pani_250.png";
-
-const juiceProducts = [
-  {
-    id: "coco-can",
-    title: "Coco Wave",
-    variant: "Sparkling Coconut",
-    description:
-      "Tender coconut water brightened with fine bubbles for instant island refresh.",
-    image: coco_can,
-    badge: "Hydrate",
-    theme: {
-      surface: "linear-gradient(135deg,#e0fbff 0%,#8be0f5 55%,#30b4d9 100%)",
-      isDark: false,
-    },
-  },
-  {
-    id: "coco-bottle",
-    title: "Coco Wave",
-    variant: "Pure Coconut",
-    description:
-      "Single-origin coconut water, cold-filtered to preserve natural sweetness.",
-    image: coco_bottle,
-    badge: "Pure Press",
-    theme: {
-      surface: "linear-gradient(135deg,#f5fff8 0%,#c8f1d3 50%,#8ed4a6 100%)",
-      isDark: false,
-    },
-  },
-  {
-    id: "life-lychee",
-    title: "Life Sips",
-    variant: "Lychee Burst",
-    description:
-      "Juicy lychee nectar with a hint of rosewater for a silky floral finish.",
-    image: lichi,
-    badge: "Best Seller",
-    theme: {
-      surface: "linear-gradient(135deg,#fff5fb 0%,#ffb5d3 55%,#ff81b2 100%)",
-      isDark: false,
-    },
-  },
-  {
-    id: "mango-bottle",
-    title: "Sunrise Press",
-    variant: "Mango Splash",
-    description:
-      "Cold-pressed alphonso mango with calamansi zest for balanced sweetness.",
-    image: mango,
-    badge: "Tropical",
-    theme: {
-      surface: "linear-gradient(135deg,#ffdd99 0%,#ff9a44 55%,#ff5f6d 100%)",
-      isDark: false,
-    },
-  },
-  {
-    id: "nimboo",
-    title: "Fizz Street",
-    variant: "Nimboo Pani",
-    description:
-      "Classic lemon shikanji with Himalayan salt and mint, charged with micro-bubbles.",
-    image: nimboo,
-    badge: "Street Classic",
-    theme: {
-      surface: "linear-gradient(135deg,#e8ffe0 0%,#b9f293 60%,#6dd96e 100%)",
-      isDark: false,
-    },
-  },
-];
+import { juiceProducts } from "../data/products";
 
 const JuiceCarousel = () => {
   const containerRef = useRef(null);
@@ -93,30 +21,69 @@ const JuiceCarousel = () => {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
     if (!isDesktop) return;
 
     const totalSlides = juiceProducts.length;
+    const articles = containerRef.current.querySelectorAll("article");
+
     const ctx = gsap.context(() => {
-      gsap.to(trackRef.current, {
-        xPercent: -100 * (totalSlides - 1),
-        ease: "none",
+      // Set initial positions - all stacked with offset
+      articles.forEach((article, index) => {
+        gsap.set(article, {
+          x: index * 100,
+          scale: 1,
+          zIndex: totalSlides - index,
+        });
+      });
+
+      // Create timeline with smooth animations
+      const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${window.innerHeight * (totalSlides - 1)}`,
-          scrub: 0.85,
+          end: `+=${window.innerHeight * (totalSlides - 1) * 1.5}`,
+          scrub: 1.2,
           pin: true,
           anticipatePin: 1,
           snap: {
             snapTo: 1 / (totalSlides - 1),
-            duration: 0.6,
+            duration: 0.8,
             ease: "power1.inOut",
           },
           onUpdate: (self) =>
             setActiveIndex(Math.round(self.progress * (totalSlides - 1))),
         },
+      });
+
+      // Animate each card sliding out and others shifting
+      articles.forEach((article, index) => {
+        if (index < totalSlides - 1) {
+          // Card exits to the left without transparency
+          tl.to(
+            article,
+            {
+              x: -window.innerWidth,
+              duration: 1,
+              ease: "power1.inOut",
+            },
+            index
+          );
+
+          // Move remaining cards left
+          for (let i = index + 1; i < totalSlides; i++) {
+            tl.to(
+              articles[i],
+              {
+                x: (i - index - 1) * 100,
+                duration: 1,
+                ease: "power1.inOut",
+              },
+              index
+            );
+          }
+        }
       });
     }, containerRef);
 
@@ -125,10 +92,14 @@ const JuiceCarousel = () => {
 
   return (
     <section id="juices" ref={containerRef} className="relative">
-      <div className={isDesktop ? "sticky top-0 h-screen overflow-hidden" : ""}>
+      <div
+        className={`w-full ${
+          isDesktop ? "sticky top-0 h-screen overflow-hidden" : ""
+        }`}
+      >
         <div
           ref={trackRef}
-          className="flex h-full w-full flex-col md:flex-row will-change-transform"
+          className="flex h-full w-full flex-col will-change-transform"
         >
           {juiceProducts.map((product, index) => {
             const isDark = product.theme?.isDark;
@@ -142,7 +113,7 @@ const JuiceCarousel = () => {
             return (
               <article
                 key={product.id}
-                className="flex min-h-[80vh] w-full shrink-0 flex-col gap-10 px-6 py-12 text-center sm:px-10 sm:py-16 md:min-h-screen md:flex-row md:items-center md:justify-center md:px-14 md:text-left"
+                className="flex min-h-[80vh] w-full shrink-0 flex-col gap-10 px-6 py-12 text-center sm:px-10 sm:py-16 md:absolute md:inset-0 md:min-h-screen md:flex-row md:items-center md:justify-center md:px-14 md:text-left"
                 style={
                   product.theme?.surface
                     ? { background: product.theme.surface }
@@ -151,11 +122,33 @@ const JuiceCarousel = () => {
                 aria-hidden={activeIndex !== index}
               >
                 <div className="flex w-full justify-center md:w-1/2">
-                  <img
-                    src={product.image}
-                    alt={`${product.title} ${product.variant}`}
-                    className="max-h-[60vh] w-auto object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)] md:max-h-[70vh]"
-                  />
+                  {Array.isArray(product.image) && product.image.length > 1 ? (
+                    <div className="flex items-end justify-center gap-3 sm:gap-4 max-h-[60vh] md:max-h-[70vh]">
+                      {product.image.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`${product.title} ${product.variant} ${
+                            product.detail?.packSizes?.[idx] || ""
+                          }`}
+                          className="object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)]"
+                          style={{
+                            height: idx === 1 ? "100%" : "65%",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <img
+                      src={
+                        Array.isArray(product.image)
+                          ? product.image[0]
+                          : product.image
+                      }
+                      alt={`${product.title} ${product.variant}`}
+                      className="max-h-[60vh] w-auto object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)] md:max-h-[70vh]"
+                    />
+                  )}
                 </div>
 
                 <div className="flex w-full flex-col items-center gap-5 md:w-1/2 md:items-start">
@@ -181,6 +174,30 @@ const JuiceCarousel = () => {
                   <p className={`text-lg md:max-w-md ${bodyTone}`}>
                     {product.description}
                   </p>
+                  {product.detail?.packSizes &&
+                    product.detail.packSizes.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span
+                          className={`text-sm font-semibold uppercase tracking-wider ${kickerTone}`}
+                        >
+                          Available:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {product.detail.packSizes.map((size, idx) => (
+                            <span
+                              key={idx}
+                              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${badgeTone} border ${
+                                product.theme?.isDark === false
+                                  ? "border-slate-900/20"
+                                  : "border-white/20"
+                              }`}
+                            >
+                              {size}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               </article>
             );

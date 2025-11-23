@@ -1,14 +1,26 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { HiOutlineChevronDown, HiOutlineMenuAlt3 } from "react-icons/hi";
 import canImage from "../assets/Product_Images/KIBU_330.png";
+import { energyProducts, juiceProducts } from "../data/products";
 
-const productItems = [
-  { label: "Energy Drinks", href: "#products", featured: true },
-  { label: "KIBU 330ML", href: "#product1" },
-  { label: "KIBU 250ML", href: "#product2" },
-  { label: "KIBU 180ML", href: "#product3" },
-  { label: "ARNA 330ML", href: "#product4" },
-  { label: "REBOOST", href: "#product5" },
+const productCategories = [
+  {
+    label: "Energy Drinks",
+    products: energyProducts.map((p) => ({
+      id: p.id,
+      label: `${p.title} ${p.variant}`,
+      badge: p.badge,
+    })),
+  },
+  {
+    label: "Juices & Coconut Water",
+    products: juiceProducts.map((p) => ({
+      id: p.id,
+      label: `${p.title} ${p.variant}`,
+      badge: p.badge,
+    })),
+  },
 ];
 
 export default function Header() {
@@ -16,10 +28,15 @@ export default function Header() {
   const [isProductsOpen, setIsProductsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const closeTimeoutRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const desktopProductsMenuId = useId();
   const mobileMenuId = useId();
   const mobileProductsPanelId = useId();
+
+  // Determine if we should show transparent header
+  const isTransparent = location.pathname === "/" && !isAfterHero;
 
   const openProducts = () => {
     clearTimeout(closeTimeoutRef.current);
@@ -42,10 +59,28 @@ export default function Header() {
   };
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+    setIsProductsOpen(false);
+    closeMobileMenu();
+  };
+
   const handleNavClick = (target, afterNavigate) => (event) => {
     event.preventDefault();
-    const el = document.querySelector(target);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    const scrollToTarget = () => {
+      const el = document.querySelector(target);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    if (location.pathname !== "/") {
+      navigate("/", { state: { target } });
+      afterNavigate?.();
+      return;
+    }
+
+    scrollToTarget();
     afterNavigate?.();
   };
 
@@ -53,17 +88,33 @@ export default function Header() {
     let observer;
     let retryId;
 
+    // For non-home pages, keep solid header
+    if (location.pathname !== "/") {
+      setIsAfterHero(true);
+      return () => {
+        if (retryId) clearTimeout(retryId);
+      };
+    }
+
+    // For home page, start transparent
+    setIsAfterHero(false);
+
     const setupObserver = () => {
       const heroEl = document.querySelector("#hero");
       if (!heroEl) return false;
 
       observer = new IntersectionObserver(
         ([entry]) => {
-          const pastHero =
-            entry.boundingClientRect.top <= -72 || !entry.isIntersecting;
-          setIsAfterHero(pastHero);
+          // Hero is visible when it's intersecting and top is above viewport bottom
+          const heroIsVisible =
+            entry.isIntersecting && entry.intersectionRatio > 0;
+          setIsAfterHero(!heroIsVisible);
         },
-        { rootMargin: "-72px 0px 0px 0px", threshold: 0 }
+        {
+          root: null,
+          rootMargin: "0px",
+          threshold: [0, 0.1], // Trigger at start and when 10% visible
+        }
       );
 
       observer.observe(heroEl);
@@ -78,18 +129,22 @@ export default function Header() {
       observer?.disconnect();
       if (retryId) clearTimeout(retryId);
     };
-  }, []);
+  }, [location.pathname]);
 
   const shellClasses =
-    "sticky top-0 z-50 border-b border-transparent backdrop-blur-lg transition-colors duration-300";
-  const bgClasses = isAfterHero
-    ? "bg-brand-border/95 border-brand-blue/60 shadow-brand"
-    : "bg-white/10 border-white/20 text-white";
+    "sticky top-0 z-[100] border-b transition-all duration-300";
+  const bgClasses = isTransparent
+    ? "bg-white/5 backdrop-blur-md border-white/10 text-white shadow-sm"
+    : "bg-white/95 backdrop-blur-xl border-gray-200 shadow-lg";
 
   const linkBase =
-    "relative rounded-full px-5 py-2 text-sm font-semibold text-brand-text transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40";
+    "relative rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  const linkColors = isTransparent
+    ? "text-white hover:bg-white/20 focus-visible:ring-white/40"
+    : "text-gray-900 hover:bg-gray-100 focus-visible:ring-blue-500";
   const underlineClasses =
-    "after:absolute after:left-4 after:right-4 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-brand-accent after:opacity-0 after:transition-opacity after:duration-200";
+    "after:absolute after:left-4 after:right-4 after:-bottom-1 after:h-0.5 after:rounded-full after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-100";
+  const underlineColor = isTransparent ? "after:bg-white" : "after:bg-blue-600";
 
   return (
     <header className={`${shellClasses} ${bgClasses}`}>
@@ -103,10 +158,23 @@ export default function Header() {
             />
 
             <div className="leading-tight">
-              <p className="text-xl font-black tracking-wide text-brand-text">
-                Life <span className="text-brand-accent">Food</span>
+              <p
+                className={`text-xl font-black tracking-wide transition-colors ${
+                  isTransparent ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Life{" "}
+                <span
+                  className={isTransparent ? "text-blue-400" : "text-blue-600"}
+                >
+                  Food
+                </span>
               </p>
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-brand-blue/80">
+              <p
+                className={`text-[0.65rem] font-semibold uppercase tracking-[0.35em] transition-colors ${
+                  isTransparent ? "text-white/70" : "text-gray-600"
+                }`}
+              >
                 Beverage Pvt. Ltd.
               </p>
             </div>
@@ -117,11 +185,17 @@ export default function Header() {
               className="hidden flex-1 justify-end lg:flex"
               aria-label="Main navigation"
             >
-              <div className="flex items-center gap-1 rounded-full border border-brand-border bg-brand-shell/95 px-2 py-1 text-brand-text shadow-brand backdrop-blur">
+              <div
+                className={`flex items-center gap-1 rounded-full border px-2 py-1 shadow-lg backdrop-blur-xl transition-all ${
+                  isTransparent
+                    ? "border-white/20 bg-white/10"
+                    : "border-gray-200 bg-white/90"
+                }`}
+              >
                 <a
                   href="#home"
                   onClick={handleNavClick("#hero")}
-                  className={`group ${linkBase} ${underlineClasses} hover:bg-white hover:text-brand-text hover:after:opacity-100`}
+                  className={`group ${linkBase} ${linkColors} ${underlineClasses} ${underlineColor}`}
                 >
                   Home
                 </a>
@@ -143,13 +217,13 @@ export default function Header() {
                     aria-expanded={isProductsOpen}
                     aria-controls={desktopProductsMenuId}
                     onClick={toggleProducts}
-                    className={`group inline-flex items-center gap-1 ${linkBase} ${underlineClasses} ${
+                    className={`group inline-flex items-center gap-1 ${linkBase} ${linkColors} ${underlineClasses} ${underlineColor} ${
                       isProductsOpen ? "after:opacity-100" : ""
-                    } hover:bg-white`}
+                    }`}
                   >
                     <span className="pr-1">Products</span>
                     <HiOutlineChevronDown
-                      className={`text-brand-text transition-transform duration-200 ${
+                      className={`transition-transform duration-200 ${
                         isProductsOpen ? "rotate-180" : ""
                       }`}
                     />
@@ -160,41 +234,70 @@ export default function Header() {
                     role="menu"
                     onMouseEnter={openProducts}
                     onMouseLeave={closeProducts}
-                    className={`absolute left-0 right-auto mt-3 w-64 rounded-2xl border border-brand-border/60 bg-white/95 p-2 text-brand-text shadow-2xl transition-all duration-200 ease-out ${
+                    className={`absolute left-0 right-auto mt-3 w-72 rounded-2xl border shadow-2xl backdrop-blur-xl transition-all duration-200 ease-out ${
+                      isTransparent
+                        ? "border-white/20 bg-gray-900/95"
+                        : "border-gray-200 bg-white/95"
+                    } ${
                       isProductsOpen
                         ? "pointer-events-auto translate-y-0 opacity-100"
                         : "pointer-events-none translate-y-2 opacity-0"
                     }`}
                   >
-                    {productItems.map(({ label, href, featured }) => (
-                      <a
-                        key={label}
-                        role="menuitem"
-                        href={href}
-                        onClick={handleNavClick(href)}
-                        className={`flex items-center justify-between rounded-xl px-4 py-2 text-sm font-medium transition ${
-                          featured
-                            ? "bg-brand-shell text-brand-text hover:bg-brand-shell/80"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        {label}
-                      </a>
-                    ))}
+                    <div className="p-2">
+                      {productCategories.map((category) => (
+                        <div key={category.label} className="mb-3 last:mb-0">
+                          <p
+                            className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider ${
+                              isTransparent ? "text-gray-400" : "text-gray-500"
+                            }`}
+                          >
+                            {category.label}
+                          </p>
+                          <div className="space-y-1">
+                            {category.products.map((product) => (
+                              <button
+                                key={product.id}
+                                role="menuitem"
+                                onClick={() => handleProductClick(product.id)}
+                                className={`flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                                  isTransparent
+                                    ? "text-white hover:bg-white/10"
+                                    : "text-gray-900 hover:bg-blue-50"
+                                }`}
+                              >
+                                <span>{product.label}</span>
+                                {product.badge && (
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                      isTransparent
+                                        ? "bg-white/20 text-white"
+                                        : "bg-blue-100 text-blue-700"
+                                    }`}
+                                  >
+                                    {product.badge}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 <a
                   href="#about"
                   onClick={handleNavClick("#about")}
-                  className={`group ${linkBase} ${underlineClasses} hover:bg-white hover:after:opacity-100`}
+                  className={`group ${linkBase} ${linkColors} ${underlineClasses} ${underlineColor}`}
                 >
                   About
                 </a>
                 <a
                   href="#contact"
                   onClick={handleNavClick("#contact")}
-                  className={`group ${linkBase} ${underlineClasses} hover:bg-white hover:after:opacity-100`}
+                  className={`group ${linkBase} ${linkColors} ${underlineClasses} ${underlineColor}`}
                 >
                   Contact
                 </a>
@@ -202,17 +305,17 @@ export default function Header() {
             </nav>
             <button
               type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-border bg-white/80 text-brand-text transition hover:bg-white lg:hidden"
+              className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all lg:hidden ${
+                isTransparent
+                  ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+                  : "border-gray-300 bg-white text-gray-900 hover:bg-gray-50"
+              }`}
               onClick={handleMobileToggle}
               aria-label="Toggle navigation"
               aria-expanded={isMobileMenuOpen}
               aria-controls={mobileMenuId}
             >
-              <HiOutlineMenuAlt3
-                className={`h-6 w-6 transition ${
-                  isMobileMenuOpen ? "text-brand-blue" : ""
-                }`}
-              />
+              <HiOutlineMenuAlt3 className={`h-6 w-6 transition`} />
             </button>
           </div>
         </div>
@@ -225,67 +328,110 @@ export default function Header() {
               : "pointer-events-none max-h-0 opacity-0"
           } w-full overflow-hidden transition-all duration-300`}
         >
-          <div className="mt-4 space-y-2 rounded-3xl border border-brand-border bg-white/90 p-4 text-brand-text shadow-brand backdrop-blur">
-            <a
-              href="#home"
-              onClick={handleNavClick("#home", closeMobileMenu)}
-              className="block rounded-2xl px-4 py-3 text-base font-semibold hover:bg-brand-shell"
+          <div className="px-4 pb-4">
+            <div
+              className={`mt-4 space-y-2 rounded-3xl border p-4 shadow-brand backdrop-blur ${
+                isTransparent
+                  ? "border-white/20 bg-gray-900/95 text-white"
+                  : "border-gray-200 bg-white/95 text-gray-900"
+              }`}
             >
-              Home
-            </a>
-
-            <div className="rounded-2xl bg-brand-shell/70">
-              <button
-                type="button"
-                onClick={toggleProducts}
-                className="flex w-full items-center justify-between px-4 py-3 text-base font-semibold"
-                aria-expanded={isProductsOpen}
-                aria-controls={mobileProductsPanelId}
-              >
-                Products
-                <HiOutlineChevronDown
-                  className={`transition-transform ${
-                    isProductsOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              <div
-                id={mobileProductsPanelId}
-                role="menu"
-                className={`space-y-1 overflow-hidden px-4 pb-3 transition-all ${
-                  isProductsOpen ? "max-h-96" : "max-h-0"
+              <a
+                href="#home"
+                onClick={handleNavClick("#home", closeMobileMenu)}
+                className={`block rounded-2xl px-4 py-3 text-base font-semibold ${
+                  isTransparent ? "hover:bg-white/10" : "hover:bg-gray-100"
                 }`}
               >
-                {productItems.map(({ label, href }) => (
-                  <a
-                    key={label}
-                    role="menuitem"
-                    onClick={handleNavClick(href, () => {
-                      closeMobileMenu();
-                      setIsProductsOpen(false);
-                    })}
-                    className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-white"
-                  >
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </div>
+                Home
+              </a>
 
-            <a
-              href="#about"
-              onClick={handleNavClick("#about", closeMobileMenu)}
-              className="block rounded-2xl px-4 py-3 text-base font-semibold hover:bg-brand-shell"
-            >
-              About
-            </a>
-            <a
-              href="#contact"
-              onClick={handleNavClick("#contact", closeMobileMenu)}
-              className="block rounded-2xl px-4 py-3 text-base font-semibold hover:bg-brand-shell"
-            >
-              Contact
-            </a>
+              <div
+                className={`rounded-2xl ${
+                  isTransparent ? "bg-white/5" : "bg-gray-100"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={toggleProducts}
+                  className="flex w-full items-center justify-between px-4 py-3 text-base font-semibold"
+                  aria-expanded={isProductsOpen}
+                  aria-controls={mobileProductsPanelId}
+                >
+                  Products
+                  <HiOutlineChevronDown
+                    className={`transition-transform ${
+                      isProductsOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  id={mobileProductsPanelId}
+                  role="menu"
+                  className={`space-y-3 overflow-hidden px-4 pb-3 transition-all ${
+                    isProductsOpen ? "max-h-[600px]" : "max-h-0"
+                  }`}
+                >
+                  {productCategories.map((category) => (
+                    <div key={category.label} className="space-y-1">
+                      <p
+                        className={`px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
+                          isTransparent ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        {category.label}
+                      </p>
+                      {category.products.map((product) => (
+                        <button
+                          key={product.id}
+                          role="menuitem"
+                          onClick={() => {
+                            handleProductClick(product.id);
+                          }}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium ${
+                            isTransparent
+                              ? "hover:bg-white/10"
+                              : "hover:bg-white"
+                          }`}
+                        >
+                          <span>{product.label}</span>
+                          {product.badge && (
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                isTransparent
+                                  ? "bg-blue-500/20 text-blue-300"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}
+                            >
+                              {product.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <a
+                href="#about"
+                onClick={handleNavClick("#about", closeMobileMenu)}
+                className={`block rounded-2xl px-4 py-3 text-base font-semibold ${
+                  isTransparent ? "hover:bg-white/10" : "hover:bg-gray-100"
+                }`}
+              >
+                About
+              </a>
+              <a
+                href="#contact"
+                onClick={handleNavClick("#contact", closeMobileMenu)}
+                className={`block rounded-2xl px-4 py-3 text-base font-semibold ${
+                  isTransparent ? "hover:bg-white/10" : "hover:bg-gray-100"
+                }`}
+              >
+                Contact
+              </a>
+            </div>
           </div>
         </div>
       </div>
