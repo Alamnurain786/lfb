@@ -29,56 +29,53 @@ const JuiceCarousel = () => {
     const articles = containerRef.current.querySelectorAll("article");
 
     const ctx = gsap.context(() => {
-      // Set initial positions - all stacked with offset
+      // Set initial positions - all stacked with offset on left side
       articles.forEach((article, index) => {
         gsap.set(article, {
-          x: index * 100,
-          scale: 1,
+          x: index * 150,
           zIndex: totalSlides - index,
+          transformOrigin: "center center",
         });
       });
 
-      // Create timeline with smooth animations
+      // Create timeline - follows mouse wheel exactly without snap
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${window.innerHeight * (totalSlides - 1) * 1.5}`,
-          scrub: 1.2,
+          end: `+=${window.innerHeight * totalSlides * 2}`,
+          scrub: 0.5,
           pin: true,
+          pinSpacing: true,
           anticipatePin: 1,
-          snap: {
-            snapTo: 1 / (totalSlides - 1),
-            duration: 0.8,
-            ease: "power1.inOut",
-          },
+          invalidateOnRefresh: true,
           onUpdate: (self) =>
             setActiveIndex(Math.round(self.progress * (totalSlides - 1))),
         },
       });
 
-      // Animate each card sliding out and others shifting
+      // Animate each card sliding out and others shifting with easing
       articles.forEach((article, index) => {
         if (index < totalSlides - 1) {
-          // Card exits to the left without transparency
+          // Card exits to the left
           tl.to(
             article,
             {
               x: -window.innerWidth,
               duration: 1,
-              ease: "power1.inOut",
+              ease: "power2.out",
             },
             index
           );
 
-          // Move remaining cards left
+          // Move remaining cards left smoothly
           for (let i = index + 1; i < totalSlides; i++) {
             tl.to(
               articles[i],
               {
-                x: (i - index - 1) * 100,
+                x: (i - index - 1) * 150,
                 duration: 1,
-                ease: "power1.inOut",
+                ease: "power2.inOut",
               },
               index
             );
@@ -131,6 +128,7 @@ const JuiceCarousel = () => {
                           alt={`${product.title} ${product.variant} ${
                             product.detail?.packSizes?.[idx] || ""
                           }`}
+                          loading="lazy"
                           className="object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)]"
                           style={{
                             height: idx === 1 ? "100%" : "65%",
@@ -146,6 +144,7 @@ const JuiceCarousel = () => {
                           : product.image
                       }
                       alt={`${product.title} ${product.variant}`}
+                      loading="lazy"
                       className="max-h-[60vh] w-auto object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)] md:max-h-[70vh]"
                     />
                   )}

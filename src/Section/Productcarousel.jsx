@@ -26,25 +26,61 @@ const Product = () => {
     if (!isDesktop) return;
 
     const totalSlides = energyProducts.length;
+    const articles = containerRef.current.querySelectorAll("article");
+
     const ctx = gsap.context(() => {
-      gsap.to(trackRef.current, {
-        xPercent: -100 * (totalSlides - 1),
-        ease: "none",
+      // Set initial positions - all stacked with offset on left side
+      articles.forEach((article, index) => {
+        gsap.set(article, {
+          x: index * 150,
+          zIndex: totalSlides - index,
+          transformOrigin: "center center",
+        });
+      });
+
+      // Create timeline - follows mouse wheel exactly without snap
+      const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: `+=${window.innerHeight * (totalSlides - 1) * 1.5}`,
-          scrub: 1.2,
+          end: `+=${window.innerHeight * totalSlides * 2}`,
+          scrub: 0.5,
           pin: true,
+          pinSpacing: true,
           anticipatePin: 1,
-          snap: {
-            snapTo: 1 / (totalSlides - 1),
-            duration: 0.8,
-            ease: "power1.inOut",
-          },
+          invalidateOnRefresh: true,
           onUpdate: (self) =>
             setActiveIndex(Math.round(self.progress * (totalSlides - 1))),
         },
+      });
+
+      // Animate each card sliding out and others shifting with easing
+      articles.forEach((article, index) => {
+        if (index < totalSlides - 1) {
+          // Card exits to the left
+          tl.to(
+            article,
+            {
+              x: -window.innerWidth,
+              duration: 1,
+              ease: "power2.out",
+            },
+            index
+          );
+
+          // Move remaining cards left smoothly
+          for (let i = index + 1; i < totalSlides; i++) {
+            tl.to(
+              articles[i],
+              {
+                x: (i - index - 1) * 150,
+                duration: 1,
+                ease: "power2.inOut",
+              },
+              index
+            );
+          }
+        }
       });
     }, containerRef);
 
@@ -60,7 +96,7 @@ const Product = () => {
       >
         <div
           ref={trackRef}
-          className="flex h-full w-full flex-col md:flex-row will-change-transform"
+          className="flex h-full w-full flex-col will-change-transform"
         >
           {energyProducts.map((product, index) => {
             const isDark = product.theme?.isDark;
@@ -77,7 +113,7 @@ const Product = () => {
             return (
               <article
                 key={product.id}
-                className="flex min-h-[80vh] w-full shrink-0 flex-col gap-10 px-6 py-12 text-center sm:px-10 sm:py-16 md:min-h-screen md:flex-row md:items-center md:justify-center md:px-14 md:text-left"
+                className="flex min-h-[80vh] w-full shrink-0 flex-col gap-10 px-6 py-12 text-center sm:px-10 sm:py-16 md:absolute md:inset-0 md:min-h-screen md:flex-row md:items-center md:justify-center md:px-14 md:text-left"
                 style={
                   product.theme?.surface
                     ? { background: product.theme.surface }
@@ -90,6 +126,7 @@ const Product = () => {
                     src={product.image}
                     alt={`${product.title} ${product.variant}`}
                     className="max-h-[60vh] w-auto object-contain drop-shadow-[0_25px_60px_rgba(15,23,42,0.35)] md:max-h-[70vh]"
+                    loading="lazy"
                   />
                 </div>
 

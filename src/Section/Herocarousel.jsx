@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade, Keyboard, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import "swiper/css/pagination";
 import heroImage1 from "../assets/Hero_Images/KIBU-Banner.png";
 import heroImage2 from "../assets/Hero_Images/fizzy-banner.png";
 import heroImage3 from "../assets/Hero_Images/REBOOST-Banner.png";
@@ -36,11 +37,8 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="relative isolate min-h-screen w-full -mt-[72px]"
+      className="relative isolate min-h-screen w-full -mt-[73px] pt-[73px] bg-gradient-to-b from-slate-900 via-slate-800 to-transparent"
     >
-      {/* Header background area */}
-      <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 z-0" />
-
       <Swiper
         modules={[Autoplay, EffectFade, Pagination, Keyboard]}
         effect="fade"
@@ -55,13 +53,17 @@ const Hero = () => {
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={slide.image}>
-            <div className="relative flex min-h-screen w-full items-stretch pt-[72px]">
+            <div className="relative flex min-h-screen w-full items-stretch">
               <img
                 src={slide.image}
                 alt={slide.title}
                 className="absolute inset-0 h-full w-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchpriority={index === 0 ? "high" : "low"}
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+              {/* Top gradient for header text visibility */}
+              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none" />
               <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-end justify-center px-6 py-20 text-white md:px-16 lg:px-24">
                 <motion.div
                   className="max-w-2xl space-y-4 text-right"

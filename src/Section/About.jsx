@@ -59,7 +59,7 @@ const About = () => {
         </div>
 
         <div className="relative w-full overflow-hidden rounded-3xl bg-[radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.18),transparent_55%)] lg:w-1/2">
-          <div className="relative flex min-h-[420px] flex-col justify-end bg-[linear-gradient(135deg,#3e1558_0%,#1c0f2d_60%)] p-8 text-right">
+          <div className="relative flex min-h-[420px] flex-col justify-start bg-[linear-gradient(135deg,#3e1558_0%,#1c0f2d_60%)] p-8 text-left">
             <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(255,255,255,0)_0%,rgba(255,95,172,0.15)_60%,rgba(82,208,255,0.2)_100%)]" />
             <div className="relative z-10 space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/70">

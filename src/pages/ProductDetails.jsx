@@ -70,6 +70,10 @@ const ProductDetails = () => {
     }
   }, [product, navigate]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [productId]);
+
   useLayoutEffect(() => {
     if (!product) return;
     gsap.registerPlugin(ScrollTrigger);
@@ -384,6 +388,8 @@ const ProductDetails = () => {
                           alt={`${product.title} ${
                             detail.packSizes?.[idx] || ""
                           }`}
+                          loading="eager"
+                          fetchpriority="high"
                           className="object-contain"
                           style={{
                             height: idx === 1 ? "100%" : "65%",
@@ -395,6 +401,8 @@ const ProductDetails = () => {
                     <img
                       src={product.image}
                       alt={`${product.title} can`}
+                      loading="eager"
+                      fetchpriority="high"
                       className="h-full w-full object-contain"
                     />
                   )}

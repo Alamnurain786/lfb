@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import BackToTop from "../components/BackToTop";
 import Herocarousel from "../Section/Herocarousel";
 import Productcarousel from "../Section/Productcarousel";
 import JuiceCarousel from "../Section/JuiceCarousel";
@@ -34,6 +35,7 @@ const LandingPage = () => {
       <About />
       <Contact />
       <Footer />
+      <BackToTop />
     </>
   );
 };

@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation files (internal use only)
+ANALYTICS_SETUP.md
+CODE_REVIEW.md
+PERFORMANCE_OPTIMIZATIONS.md

@@ -154,7 +154,7 @@ export default function Header() {
             <img
               src={canImage}
               alt="Energy can"
-              className="h-12 w-8 object-contain drop-shadow"
+              className="h-12 w-auto object-contain drop-shadow"
             />
 
             <div className="leading-tight">

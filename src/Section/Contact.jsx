@@ -17,24 +17,61 @@ const Contact = () => {
     message: "",
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error' | null
 
   const handleChange = (e) => {
     setFormValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+    setSubmitStatus(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
     const nextErrors = {};
     if (!formValues.name.trim()) nextErrors.name = "Name is required.";
     if (!/\S+@\S+\.\S+/.test(formValues.email))
       nextErrors.email = "Valid email required.";
     if (!formValues.phone.trim()) nextErrors.phone = "Phone is required.";
     if (!formValues.message.trim()) nextErrors.message = "Tell us a bit more.";
+
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    console.log("Contact form payload", formValues);
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Option 1: Send to FormSpree (Free service)
+      // Sign up at https://formspree.io and replace YOUR_FORM_ID
+      const response = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formValues),
+      });
+
+      if (response.ok) {
+        setSubmitStatus("success");
+        setFormValues({ name: "", email: "", phone: "", message: "" });
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+
+    // Alternative: Log to console for now (remove above fetch and use this)
+    // console.log("Contact form payload", formValues);
+    // setSubmitStatus("success");
+    // setFormValues({ name: "", email: "", phone: "", message: "" });
+    // setIsSubmitting(false);
   };
 
   return (
@@ -190,11 +227,52 @@ const Contact = () => {
             </label>
           </div>
 
+          {submitStatus === "success" && (
+            <div className="mt-4 rounded-2xl border border-green-500 bg-green-50 p-4 text-sm text-green-800">
+              <strong>✓ Message sent successfully!</strong>
+              <p className="mt-1">We'll get back to you within 24 hours.</p>
+            </div>
+          )}
+
+          {submitStatus === "error" && (
+            <div className="mt-4 rounded-2xl border border-red-500 bg-red-50 p-4 text-sm text-red-800">
+              <strong>✗ Something went wrong.</strong>
+              <p className="mt-1">Please try again or email us directly.</p>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="mt-6 w-full rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)] transition hover:bg-slate-800"
+            disabled={isSubmitting}
+            className="mt-6 w-full rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(15,23,42,0.35)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Send message
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Sending...
+              </span>
+            ) : (
+              "Send message"
+            )}
           </button>
         </form>
       </div>
